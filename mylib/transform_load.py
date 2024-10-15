@@ -5,7 +5,7 @@ from databricks import sql
 
 
 # load the csv file and insert into a new databricks database
-def load(dataset="/workspaces/yijia_ids706_miniProj6/data/rdu-weather-history.csv"):
+def load(dataset="./data/rdu-weather-history.csv"):
     payload = csv.reader(open(dataset, newline=""), delimiter=",")
     next(payload)
     # print(*payload)
