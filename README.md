@@ -38,7 +38,7 @@ make install
 - make install: Installs dependencies specified in requirements.txt.
 - make format: Formats Python files using Black.
 - make lint: Lints Python files using Pylint, ignoring specific patterns.
-- make test: Runs tests using pytest and generates a coverage report.
+- make test: Runs tests using pytest.
 
 ## SQL Query for Weather Data Aggregation
 The following SQL query aggregates the weather data for 2022, calculating average temperature, total precipitation, and average wind speed for each month. The results are sorted by average wind speed in descending order, and the top 5 months with the highest wind speeds are returned. Additionally, the query joins the aggregated data with daily weather records to provide more detailed results.
