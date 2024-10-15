@@ -1,4 +1,4 @@
-# yijia_ids706_miniProj5
+# yijia_ids706_miniProj6
 
 ## Python Template
 

@@ -24,7 +24,8 @@ jobs:
         run: make lint
 
       - name: Test
+        env:
+          DATABRICKS_KEY: ${{ secrets.DATABRICKS_KEY }}
+          SERVER_HOSTNAME: ${{ secrets.SERVER_HOSTNAME }}
+          HTTP_PATH: ${{ secrets.HTTP_PATH }}
         run: make test
-
-      - name: Generate and Push Markdown Report
-        run: make generate_and_push

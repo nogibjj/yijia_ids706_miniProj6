@@ -1,39 +1,75 @@
-"""
-Transforms and Loads data into the local SQLite3 database
-Example:
-,general name,count_products,ingred_FPro,avg_FPro_products,avg_distance_root,ingred_normalization_term,semantic_tree_name,semantic_tree_node
-"""
-import sqlite3
 import csv
 import os
+from dotenv import load_dotenv
+from databricks import sql
 
-#load the csv file and insert into a new sqlite3 database
-def load(dataset="/workspaces/yijia_ids706_miniProj5/rdu-weather-history.csv"):
-    """Transforms and Loads data into the local SQLite3 database"""
 
-    #prints the full working directory and path
-    print(os.getcwd())
-    payload = csv.reader(open(dataset, newline=''), delimiter=',')
-    conn = sqlite3.connect('WeatherDB.db')
-    c = conn.cursor()
-    c.execute("DROP TABLE IF EXISTS WeatherDB")
-    c.execute("""
-            CREATE TABLE WeatherDB (
-                Date TEXT, 
-                Temperature_Minimum REAL, 
-                Temperature_Maximum REAL, 
-                Precipitation REAL, 
-                Snowfall REAL, 
-                Snow_Depth REAL, 
-                Average_Wind_Speed REAL
+# load the csv file and insert into a new databricks database
+def load(dataset="/workspaces/yijia_ids706_miniProj6/data/rdu-weather-history.csv"):
+    payload = csv.reader(open(dataset, newline=""), delimiter=",")
+    next(payload)
+    # print(*payload)
+    load_dotenv()
+    
+    # Connect to Databricks
+    with sql.connect(
+        server_hostname=os.getenv("SERVER_HOSTNAME"),
+        http_path=os.getenv("HTTP_PATH"),
+        access_token=os.getenv("DATABRICKS_KEY"),
+    ) as connection:
+        with connection.cursor() as cursor:
+            # CREATE TABLE 
+            cursor.execute(
+                """CREATE TABLE IF NOT EXISTS rdu_weather (
+                    Date STRING,
+                    Temperature_Minimum INT,
+                    Temperature_Maximum INT,
+                    Precipitation DOUBLE,
+                    Snowfall DOUBLE,
+                    Snow_Depth DOUBLE,
+                    Average_Wind_Speed DOUBLE
+                );"""
             )
-        """)
-    #insert
-    c.executemany("""
-            INSERT INTO WeatherDB 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, payload)
-    conn.commit()
-    conn.close()
-    return "WeatherDB.db"
 
+            # truncate the table to delete all existing rows
+            # cursor.execute("TRUNCATE TABLE rdu_weather")
+            # print("Table truncated, all rows deleted.")
+            
+            # Insert data into the table if it is not already loaded
+            cursor.execute("SELECT COUNT(*) FROM rdu_weather")
+            result = cursor.fetchone()
+            row_count = result[0]
+            print(f"Number of rows in the table: {row_count}")
+
+            if not result[0]:  # If no data exists in the table
+                    print("Inserting data into table...")
+                    insert_query = "INSERT INTO rdu_weather (Date, Temperature_Minimum, Temperature_Maximum, Precipitation, Snowfall, Snow_Depth, Average_Wind_Speed) VALUES"
+                    values = []
+
+                    for row in payload:
+                        date, temp_min, temp_max, precipitation, snowfall, snow_depth, wind_speed = row
+
+                        # Replace empty values with None (which will map to NULL in SQL)
+                        wind_speed = wind_speed if wind_speed else 'NULL'
+                        
+                        # Convert the values to appropriate type
+                        values.append(
+                            f"('{date}', {int(temp_min)}, {int(temp_max)}, {float(precipitation)}, {float(snowfall)}, {float(snow_depth)}, {float(wind_speed) if wind_speed != 'NULL' else wind_speed})"
+                        )
+
+                    # Join all value tuples into the insert query
+                    string_sql = insert_query + ",\n".join(values) + ";"
+
+                    # Print  for debugging
+                    print(string_sql)
+
+                    # Execute the bulk insert query
+                    cursor.execute(string_sql)
+            cursor.close()
+            connection.close()
+    
+    return "db loaded or already loaded"
+
+
+if __name__ == "__main__":
+    load()

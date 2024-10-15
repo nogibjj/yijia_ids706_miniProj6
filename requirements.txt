@@ -6,3 +6,5 @@ requests
 ruff
 pandas
 pytest-mock
+databricks-sql-connector
+python-dotenv
