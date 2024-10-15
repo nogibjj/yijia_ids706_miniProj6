@@ -13,21 +13,26 @@ WITH monthly_aggregates AS (
     FROM
         rdu_weather
     WHERE
-        YEAR(Date) = 2022  -- Filter for the year 2022
+        YEAR(Date) = 2022
     GROUP BY
         DATE_TRUNC('month', Date)
 )
 
-SELECT
-    month,
-    avg_temperature,
-    total_precipitation,
-    avg_wind_speed
-FROM
-    monthly_aggregates
-ORDER BY
-    avg_wind_speed DESC  -- Sort by average wind speed
-LIMIT 5;
+SELECT 
+    rw.Date, 
+    rw.Temperature_Minimum, 
+    rw.Temperature_Maximum, 
+    ma.avg_temperature, 
+    ma.total_precipitation, 
+    ma.avg_wind_speed
+FROM 
+    rdu_weather rw
+JOIN 
+    monthly_aggregates ma 
+ON 
+    DATE_TRUNC('month', rw.Date) = ma.month
+ORDER BY 
+    ma.avg_wind_speed DESC
 """
 
 def query():

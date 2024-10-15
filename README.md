@@ -1,13 +1,11 @@
 # yijia_ids706_miniProj6
 
 ## Python Template
-
-This project demonstrates how to perform Extract, Transform, Load (ETL) operations, connect to a SQL database, and perform CRUD operations using Python. The dataset used in this project is weather history data for the Durham region.
-
+This project demonstrates how to perform Extract, Transform, Load (ETL) operations, connect to a SQL database (using Databricks), and execute a complex SQL query involving joins, aggregation, and sorting. The dataset used in this project is weather history data for the Durham region.
 
 ## CI/CD Badge
 
-[![CI](https://github.com/nogibjj/yijia_ids706_miniProj5/actions/workflows/cicd.yml/badge.svg)](https://github.com/nogibjj/yijia_ids706_miniProj5/actions/workflows/cicd.yml)
+[![CI](https://github.com/nogibjj/yijia_ids706_miniProj6/actions/workflows/cicd.yml/badge.svg)](https://github.com/nogibjj/yijia_ids706_miniProj6/actions/workflows/cicd.yml)
 
 ## File Structure
 
@@ -15,15 +13,13 @@ This project demonstrates how to perform Extract, Transform, Load (ETL) operatio
 - **`Makefile`**: Provides commands for setup, testing, linting, and formatting the project.
 - **`.github/workflows/`**: Contains CI/CD workflows for GitHub, which trigger actions like setup, linting, and testing when code is pushed to the repository.
 - **`rdu-weather-history.csv`**: Weather data for the Durham region.
-- **`WeatherDB.db`**: The SQLite database created and manipulated in this project.
-- **`operations_log.md`**: A log of all SQL queries (INSERT, UPDATE, DELETE, and SELECT) performed during the CRUD operations.
 
 ## Setup
 
 ### 1. Clone the Repository
 
 ```bash
-git clone git@github.com:nogibjj/yijia_ids706_miniProj5.git
+git clone git@github.com:nogibjj/yijia_ids706_miniProj6.git
 ```
 
 ### 2. Open the Repository in Visual Studio Code
@@ -43,14 +39,53 @@ make install
 - make format: Formats Python files using Black.
 - make lint: Lints Python files using Pylint, ignoring specific patterns.
 - make test: Runs tests using pytest and generates a coverage report.
-- make clean: Removes pytest cache.
-- make generate_and_push: Runs main.py to perform ETL and CRUD operations, generates a log, and pushes it to the repository.
+
+## SQL Query for Weather Data Aggregation
+The following SQL query aggregates the weather data for 2022, calculating average temperature, total precipitation, and average wind speed for each month. The results are sorted by average wind speed in descending order, and the top 5 months with the highest wind speeds are returned. Additionally, the query joins the aggregated data with daily weather records to provide more detailed results.
+
+```sql
+WITH monthly_aggregates AS (
+    SELECT
+        DATE_TRUNC('month', Date) AS month,
+        AVG((Temperature_Minimum + Temperature_Maximum) / 2) AS avg_temperature,
+        SUM(Precipitation) AS total_precipitation,
+        AVG(Average_Wind_Speed) AS avg_wind_speed
+    FROM
+        rdu_weather
+    WHERE
+        YEAR(Date) = 2022
+    GROUP BY
+        DATE_TRUNC('month', Date)
+)
+
+SELECT 
+    rw.Date, 
+    rw.Temperature_Minimum, 
+    rw.Temperature_Maximum, 
+    ma.avg_temperature, 
+    ma.total_precipitation, 
+    ma.avg_wind_speed
+FROM 
+    rdu_weather rw
+JOIN 
+    monthly_aggregates ma 
+ON 
+    DATE_TRUNC('month', rw.Date) = ma.month
+ORDER BY 
+    ma.avg_wind_speed DESC
+```
+
+### Query Explanation
+- Aggregation: 
+    - Grouping by Month: The query first groups weather data by month using DATE_TRUNC('month', Date) to group the records by month in 2022.
+    - Average Temperature: It calculates the monthly average temperature by averaging the daily minimum and maximum temperatures using (Temperature_Minimum + Temperature_Maximum) / 2.
+    - Total Precipitation: The query sums up the daily precipitation for each month using SUM(Precipitation).
+    - Average Wind Speed: The monthly average wind speed is calculated by averaging the daily wind speeds using AVG(Average_Wind_Speed).
+- Join:
+    - The query performs a JOIN between the original rdu_weather table and the monthly_aggregates table created in the WITH clause. The join is based on matching the month from the original weather data (DATE_TRUNC('month', rw.Date)) with the aggregated monthly data (ma.month).
+- Sorting:
+    - The final results are sorted by the average wind speed in descending order, ensuring that the months with the highest wind speeds appear first.
 
 ## CI/CD Setup
 - Location: .github/workflows/
-- Description: Contains GitHub Actions workflows for CI/CD, which automatically run setup, linting, testing, and generate and push the log file when code is pushed to the repository.
-
-## Operations Log
-The CI/CD pipeline automatically generates an operations_log.md file that logs all SQL queries performed during CRUD operations.
-
-The report is committed and pushed back to the repository for easy access and review.
+- Description: Contains GitHub Actions workflows for CI/CD, which automatically run setup, linting, testing.

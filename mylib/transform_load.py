@@ -59,8 +59,6 @@ def load(dataset="./data/rdu-weather-history.csv"):
 
                     # Join all value tuples into the insert query
                     string_sql = insert_query + ",\n".join(values) + ";"
-
-                    # Print  for debugging
                     print(string_sql)
 
                     # Execute the bulk insert query
