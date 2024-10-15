@@ -41,7 +41,7 @@ make install
 - make test: Runs tests using pytest.
 
 ## SQL Query for Weather Data Aggregation
-The following SQL query aggregates the weather data for 2022, calculating average temperature, total precipitation, and average wind speed for each month. The results are sorted by average wind speed in descending order, and the top 5 months with the highest wind speeds are returned. Additionally, the query joins the aggregated data with daily weather records to provide more detailed results.
+This SQL query aggregates the weather data for 2022 by calculating the average temperature, total precipitation, and average wind speed for each month. It joins this aggregated monthly data with the original daily weather records to provide detailed insights, combining both monthly and daily data. The results are sorted by average wind speed in descending order, showing the highest wind speeds first.
 
 ```sql
 WITH monthly_aggregates AS (
@@ -76,9 +76,9 @@ ORDER BY
 ```
 
 ### Query Explanation
-- Aggregation: 
+- Aggregation:
     - Grouping by Month: The query first groups weather data by month using DATE_TRUNC('month', Date) to group the records by month in 2022.
-    - Average Temperature: It calculates the monthly average temperature by averaging the daily minimum and maximum temperatures using (Temperature_Minimum + Temperature_Maximum) / 2.
+    - Average Temperature: It calculates the monthly average temperature by averaging the daily minimum and maximum temperatures using AVG((Temperature_Minimum + Temperature_Maximum) / 2).
     - Total Precipitation: The query sums up the daily precipitation for each month using SUM(Precipitation).
     - Average Wind Speed: The monthly average wind speed is calculated by averaging the daily wind speeds using AVG(Average_Wind_Speed).
 - Join:
